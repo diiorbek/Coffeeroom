@@ -13,7 +13,6 @@ class CartView(APIView):
 
     def get(self, request):
         try:
-            # Получаем корзину текущего пользователя (если корзина не найдена, будет вызвана ошибка)
             cart = Cart.objects.get(user=request.user)
             serializer = CartSerializer(cart)
             return Response(serializer.data)
@@ -38,8 +37,8 @@ class HistoryOrdersView(APIView):
     
     def get(self, request, user_id):
         history_orders = Order.objects.filter(customer__id=user_id, status__in=['shipped', 'delivered', 'canceled'])
-
-        
+    
+     
         if not history_orders.exists():
             raise NotFound(detail="No active orders found for this user.")
         

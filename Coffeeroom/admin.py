@@ -13,7 +13,6 @@ class SizeOptionInline(admin.TabularInline):
     def __str__(self):
         return self.size
 
-# Product modelini optimallashtirilgan registratsiyasi
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
     list_display = ("title", "category", "branch", "is_active")  # Поля для отображения
