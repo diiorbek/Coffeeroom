@@ -10,11 +10,11 @@ class ReadOnlyModelViewSet(viewsets.ModelViewSet):
     http_method_names = ['get']
  
 class ProductFilter(django_filters.FilterSet):
-    branch_id = django_filters.CharFilter(field_name="branch__id", lookup_expr='exact')
+    branch_id = django_filters.CharFilter(field_name="category__branch__id", lookup_expr='exact')
 
     class Meta:
         model = Product
-        fields = [ 'branch_id']
+        fields = ['branch_id']
 
 class CategoryFilter(django_filters.FilterSet):
     branch_id = django_filters.CharFilter(field_name="branch_id", lookup_expr='exact')

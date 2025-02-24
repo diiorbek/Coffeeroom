@@ -81,7 +81,8 @@ class CartItem(models.Model):
         # Пересчитываем общую сумму корзины после удаления элемента
         self.cart.update_total_amount()
 
-
+    def __str__(self):
+        return f"{self.cart} ({self.product})"
 
 class PaymentMethod(models.Model):
     method = models.CharField(max_length=50, unique=True, verbose_name="Способ оплаты")
@@ -125,6 +126,9 @@ class Order(models.Model):
         verbose_name = "Заказ"
         verbose_name_plural = "Заказы"
 
+    def __str__(self):
+        return f"{self.customer} - {self.cart}"
+
     def save(self, *args, **kwargs):
         # Перед сохранением обновляем сумму заказа на основе суммы корзины
         self.total_amount = self.cart.total_amount
@@ -162,8 +166,6 @@ class Order(models.Model):
         cart.update_total_amount()
 
         return order
-
-
 
 
 

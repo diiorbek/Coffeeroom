@@ -15,14 +15,14 @@ class SizeOptionInline(admin.TabularInline):
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ("title", "category", "branch", "is_active")  # Поля для отображения
+    list_display = ("title", "category", "is_active")  # Поля для отображения
     list_editable = ("is_active",) 
     search_fields = ("title", "description", "category__title")  
     readonly_fields = ("slug",)  
     inlines = [SizeOptionInline] 
     fieldsets = (
         ("Basic Information", {
-            "fields": ("title", "title_uz", "title_ru", "title_en", "description", "description_uz", "description_ru", "description_en", "category", "packing_code", "ikpu", "slug", "image", "branch", "is_active"),
+            "fields": ("title", "title_uz", "title_ru", "title_en", "description", "description_uz", "description_ru", "description_en", "category", "packing_code", "ikpu", "slug", "image", "is_active"),
         }),
     )
 

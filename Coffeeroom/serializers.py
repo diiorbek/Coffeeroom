@@ -43,12 +43,25 @@ class SizeOptionSerializer(serializers.ModelSerializer):
 
 class ProductSerializer(serializers.ModelSerializer):
     category_title = serializers.CharField(source='category.title', read_only=True)
-    branch_title = serializers.CharField(source='branch.title', read_only=True)
+    branch_title = serializers.SerializerMethodField()
+    branch_id = serializers.SerializerMethodField()
     size_options = SizeOptionSerializer(many=True)
+    syrups = SyrupSerializer(many=True, read_only=True)
 
     class Meta:
         model = Product
-        fields = ['id', 'title', 'title_ru', 'title_uz', 'title_en', 'description', 'description_ru', 'description_uz', 'description_en', 'category_title', 'category_id', 'slug', 'image', 'branch_title', 'branch_id', 'size_options']
+        fields = [
+            'id', 'title', 'title_ru', 'title_uz', 'title_en', 
+            'description', 'description_ru', 'description_uz', 'description_en', 
+            'category_title', 'category_id', 'slug', 'image', 
+            'branch_title', 'branch_id', 'size_options', 'syrups'
+        ]
+
+    def get_branch_title(self, obj):
+        return obj.category.branch.title
+
+    def get_branch_id(self, obj):
+        return obj.category.branch.id
 
 class CategorySerializer(serializers.ModelSerializer):
     products = ProductSerializer(many=True, read_only=True)

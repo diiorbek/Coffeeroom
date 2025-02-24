@@ -7,6 +7,10 @@ from django.utils.text import slugify
 from unidecode import unidecode
 from django.utils.translation import gettext_lazy as _
 
+product_count = 1
+category_count = 1
+
+
 LAT_LON_REGEX = r"^(-?\d{1,2}(\.\d+)?),\s*(-?\d{1,3}(\.\d+)?)$"
 
 class Branch(models.Model):
@@ -46,6 +50,10 @@ class Branch(models.Model):
     def __str__(self):
         return self.title
 
+
+from django.db.models.signals import pre_save
+from django.utils.crypto import get_random_string
+
 class Category(models.Model):
     title = models.CharField(max_length=255, verbose_name="Название категории")
     branch = models.ForeignKey(
@@ -54,23 +62,42 @@ class Category(models.Model):
         related_name="categories",
         verbose_name="Филиал"
     )
-    slug = models.SlugField(unique=True, editable=False, verbose_name="Slug категории", null=True)
-    
+    slug = models.SlugField(unique=True, editable=False, verbose_name="Slug категории", null=True, blank=True)
+
     class Meta:
         verbose_name = "Категория"
         verbose_name_plural = "Категории"
 
-    def clean(self):
-        if not self.title:
-            raise ValidationError("Название не может быть пустым.")
-
-    
-    def save(self, *args, **kwargs):
-        self.slug = slugify(unidecode(self.title), allow_unicode=True)
-        super().save(*args, **kwargs)
-    
     def __str__(self):
         return self.title
+    
+def generate_unique_slug_category(instance):
+    """ Unikal slug generatsiya qiluvchi funksiya """
+    global category_count  # Global o'zgaruvchini chaqiramiz
+    base_slug = slugify(unidecode(instance.title), allow_unicode=True)
+    slug = base_slug
+    while Category.objects.filter(slug=slug).exists():
+        slug = f"{base_slug}-{category_count}"
+        category_count += 1  # O'zgaruvchini yangilaymiz
+    return slug
+
+def generate_unique_slug_product(instance):
+    """ Unikal slug generatsiya qiluvchi funksiya """
+    global product_count  # Global o'zgaruvchini chaqiramiz
+    base_slug = slugify(unidecode(instance.title), allow_unicode=True)
+    slug = base_slug
+    while Product.objects.filter(slug=slug).exists():
+        slug = f"{base_slug}-{product_count}"
+        product_count += 1  # O'zgaruvchini yangilaymiz
+    return slug
+
+
+def category_pre_save(sender, instance, *args, **kwargs):
+    """ Model saqlashdan oldin slugni avtomatik yaratadi """
+    if not instance.slug:
+        instance.slug = generate_unique_slug_category(instance)
+
+pre_save.connect(category_pre_save, sender=Category)
 
 
 class Product(models.Model):
@@ -102,16 +129,12 @@ class Product(models.Model):
         editable=False,
         verbose_name="Slug"
     )
+
     image = models.ImageField(
         upload_to="products/",
         verbose_name="Изображение продукта"
     )
-    branch = models.ForeignKey(
-        "Branch",
-        on_delete=models.CASCADE,
-        related_name="products",
-        verbose_name="Филиал"
-    )
+
     is_active = models.BooleanField(
         verbose_name="Активен"
     )
@@ -129,11 +152,20 @@ class Product(models.Model):
             raise ValidationError("Продукту должна быть назначена категория.")
     
     def save(self, *args, **kwargs):
-        self.slug = slugify(unidecode(self.title))
+        if not self.pk:
+            self.branch = self.category.branch
         super().save(*args, **kwargs)
     
     def __str__(self):
+
         return self.title
+
+def product_pre_save(sender, instance, *args, **kwargs):
+    """ Model saqlashdan oldin slugni avtomatik yaratadi """
+    if not instance.slug:
+        instance.slug = generate_unique_slug_product(instance)
+
+pre_save.connect(product_pre_save, sender=Product)
 
 
 class SizeOption(models.Model):
@@ -203,7 +235,7 @@ class LoyaltyCard(models.Model):
         verbose_name_plural = "Лояльные карты"
 
     def __str__(self):
-        return f"{self.card_number} ({self.owner.phone_number} - {self.balance})"
+        return self.card_number
 
     def add_points(self, amount):
         if self.status == 'active':
