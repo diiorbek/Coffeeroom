@@ -69,7 +69,7 @@ class Category(models.Model):
         verbose_name_plural = "Категории"
 
     def __str__(self):
-        return self.title
+        return f"{self.title} ({self.branch.title})"
     
 def generate_unique_slug_category(instance):
     """ Unikal slug generatsiya qiluvchi funksiya """

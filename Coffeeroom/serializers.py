@@ -63,8 +63,6 @@ class ProductSerializer(serializers.ModelSerializer):
     def get_branch_id(self, obj):
         return obj.category.branch.id
 
-    fields = ['id', 'title', 'title_ru', 'title_uz', 'title_en', 'description', 'description_ru', 'description_uz', 'description_en', 'category_title', 'category_id', 'slug', 'image', 'branch_title', 'branch_id', 'size_options']
-
 
 class CategorySerializer(serializers.ModelSerializer):
     products = ProductSerializer(many=True, read_only=True)
